@@ -1,11 +1,13 @@
+process.env.PWD = process.cwd();
+
 const express = require("express");
 const cors = require("cors");
 const app = express();
 const pool = require("./db");
 
+app.use(express.static(process.env.PWD + '/public'));
 app.use(cors());
 app.use(express.json());
-
 
 //will 'reject/respond' work better than 'try/catch'or just synax?
 app.post("/newEntry", async(request, response) => {
@@ -30,16 +32,19 @@ app.get("/entries", async(request1, response2) => {
     }
 })
 
-app .get("entry/:id", async(request3, response3) => {
+app.get("/entries/:id", async (req, res) => {
     try {
-        const { id } = request3.params;
-        console.log("params:", request3.params)
-        const fetchEntry = await pool.query("SELECT * FROM entries WHERE entry_id = $1", [id]);
-        response3.json(fetchEntry.rows[0])
-    } catch (error3) {
-        console.log("An error occurred:", error3.message)
+      const { id } = req.params;
+      const entry = await pool.query("SELECT * FROM entries WHERE entry_id = $1", [
+        id
+      ]);
+  
+      res.json(entry.rows[0]);
+      console.log("Howdy")
+    } catch (err) {
+      console.error(err.message);
     }
-})
+  });
 
 app.listen(5000, () => {
     console.log("Server has started on port 5000")
